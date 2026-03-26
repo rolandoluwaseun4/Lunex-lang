@@ -1,0 +1,21 @@
+{
+  "name": "lunex-lang",
+  "version": "1.0.0",
+  "description": "A programming language in plain English",
+  "main": "lunex.js",
+  "bin": {
+    "lunex": "./lunex.js"
+  },
+  "scripts": {
+    "test": "node lunex.js hello.lnx"
+  },
+  "keywords": ["programming-language","plain-english","interpreter","lunex","beginner-friendly"],
+  "author": "Oluwaseun Roland <rolandoluwaseun4@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rolandoluwaseun4/lunex-lang"
+  },
+  "homepage": "https://rolandoluwaseun4.github.io/Lunex-lang/",
+  "engines": { "node": ">=14.0.0" }
+}
