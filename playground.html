@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lunex Playground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+
+:root{
+  --bg:#0a0a0a;
+  --panel:#111;
+  --panel2:#161616;
+  --border:#1e1e1e;
+  --border2:#2a2a2a;
+  --green:#22c55e;
+  --green-dim:#16a34a;
+  --green-glow:rgba(34,197,94,0.15);
+  --green-soft:rgba(34,197,94,0.06);
+  --text:#e8e8e2;
+  --text2:#6b7280;
+  --text3:#374151;
+  --red:#f87171;
+  --yellow:#fbbf24;
+  --blue:#60a5fa;
+  --purple:#a78bfa;
+  --mono:'JetBrains Mono',monospace;
+  --display:'Syne',sans-serif;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:13px;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+/* ── TOP BAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  height:48px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  user-select:none;
+}
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.logo{
+  font-family:var(--display);
+  font-size:16px;font-weight:800;
+  letter-spacing:-0.5px;
+  color:var(--text);
+}
+.logo span{color:var(--green);}
+.version{
+  font-size:10px;color:var(--text2);
+  background:var(--border2);
+  padding:2px 8px;border-radius:20px;
+  letter-spacing:0.05em;
+}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 16px;
+  font-family:var(--mono);
+  font-size:11px;font-weight:500;
+  letter-spacing:0.04em;
+  border-radius:4px;
+  border:none;cursor:pointer;
+  transition:all .15s;
+  text-transform:uppercase;
+}
+.btn-run{
+  background:var(--green);color:#000;font-weight:700;
+}
+.btn-run:hover{background:#16a34a;transform:translateY(-1px);}
+.btn-run:active{transform:translateY(0);}
+.btn-run.running{background:var(--yellow);color:#000;animation:pulse-btn .8s ease-in-out infinite;}
+@keyframes pulse-btn{0%,100%{opacity:1;}50%{opacity:.7;}}
+.btn-clear{
+  background:transparent;color:var(--text2);
+  border:1px solid var(--border2);
+}
+.btn-clear:hover{border-color:var(--red);color:var(--red);}
+.btn-ghost{
+  background:transparent;color:var(--text2);
+  border:1px solid var(--border2);
+}
+.btn-ghost:hover{border-color:var(--border);color:var(--text);}
+
+/* shortcut hint */
+.shortcut{
+  font-size:10px;color:var(--text3);
+  padding:3px 8px;
+  border:1px solid var(--border);
+  border-radius:3px;
+  letter-spacing:0.05em;
+}
+
+/* ── MAIN LAYOUT ── */
+.workspace{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr auto;
+  flex:1;
+  overflow:hidden;
+  gap:0;
+}
+
+/* ── EDITOR PANEL ── */
+.editor-panel{
+  display:flex;flex-direction:column;
+  border-right:1px solid var(--border);
+  overflow:hidden;
+  grid-row:1/3;
+}
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;
+  height:36px;
+  background:var(--panel2);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.panel-title{
+  font-size:10px;font-weight:700;
+  letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--text2);
+  display:flex;align-items:center;gap:8px;
+}
+.panel-title .dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);
+  animation:blink 2s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+.examples-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 16px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  overflow-x:auto;
+}
+.examples-bar::-webkit-scrollbar{display:none;}
+.ex-label{font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;margin-right:4px;}
+.ex-btn{
+  padding:4px 12px;
+  background:var(--panel2);
+  border:1px solid var(--border2);
+  border-radius:3px;
+  font-family:var(--mono);
+  font-size:11px;color:var(--text2);
+  cursor:pointer;transition:all .15s;
+  white-space:nowrap;
+}
+.ex-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-soft);}
+.ex-btn.active{border-color:var(--green);color:var(--green);background:var(--green-soft);}
+
+/* ── EDITOR ── */
+.editor-wrap{
+  position:relative;
+  flex:1;overflow:hidden;
+  display:flex;
+}
+.line-numbers{
+  padding:18px 0 18px 12px;
+  background:var(--panel);
+  color:var(--text3);
+  font-size:12px;line-height:1.7;
+  text-align:right;
+  user-select:none;
+  min-width:44px;
+  border-right:1px solid var(--border);
+  overflow:hidden;
+  flex-shrink:0;
+}
+.editor{
+  flex:1;
+  padding:18px 20px;
+  background:var(--panel);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:13px;line-height:1.7;
+  border:none;outline:none;
+  resize:none;
+  tab-size:2;
+  overflow-y:auto;
+  overflow-x:auto;
+  white-space:pre;
+  caret-color:var(--green);
+}
+.editor::-webkit-scrollbar{width:4px;height:4px;}
+.editor::-webkit-scrollbar-track{background:transparent;}
+.editor::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.editor::selection{background:rgba(34,197,94,0.2);}
+
+/* ── OUTPUT PANEL ── */
+.output-panel{
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.output-body{
+  flex:1;
+  padding:16px 20px;
+  overflow-y:auto;
+  font-size:12px;line-height:1.75;
+  background:var(--bg);
+}
+.output-body::-webkit-scrollbar{width:4px;}
+.output-body::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.out-empty{color:var(--text3);font-style:italic;}
+.out-line{color:var(--green);}
+.out-error{
+  color:var(--red);
+  display:flex;align-items:flex-start;gap:8px;
+}
+.out-error::before{content:'✕';flex-shrink:0;margin-top:1px;}
+.out-info{color:var(--text2);}
+.out-sep{border:none;border-top:1px solid var(--border);margin:8px 0;}
+
+/* ── STATUS BAR ── */
+.statusbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;
+  height:26px;
+  background:var(--panel2);
+  border-top:1px solid var(--border);
+  font-size:10px;color:var(--text3);
+  letter-spacing:0.05em;
+  flex-shrink:0;
+  grid-column:1/3;
+}
+.status-left,.status-right{display:flex;align-items:center;gap:16px;}
+.status-item{display:flex;align-items:center;gap:5px;}
+.status-item.green{color:var(--green);}
+.status-item.red{color:var(--red);}
+.status-item.yellow{color:var(--yellow);}
+
+/* ── REFERENCE PANEL ── */
+.ref-panel{
+  border-top:1px solid var(--border);
+  background:var(--panel);
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  flex-shrink:0;
+  max-height:200px;
+}
+.ref-body{
+  padding:12px 16px;
+  overflow-y:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:4px;
+}
+.ref-body::-webkit-scrollbar{display:none;}
+.ref-item{
+  display:grid;grid-template-columns:130px 1fr;
+  gap:8px;padding:5px 8px;
+  border-radius:3px;
+  transition:background .1s;
+  cursor:default;
+}
+.ref-item:hover{background:var(--green-soft);}
+.ref-kw{color:var(--green);font-weight:500;font-size:11px;white-space:nowrap;}
+.ref-desc{color:var(--text2);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ── MOBILE ── */
+@media(max-width:680px){
+  .workspace{grid-template-columns:1fr;grid-template-rows:1fr 1fr auto;}
+  .editor-panel{grid-row:auto;border-right:none;border-bottom:1px solid var(--border);}
+  .shortcut{display:none;}
+  .ref-panel{display:none;}
+  .statusbar{grid-column:1;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="logo">lune<span>x</span></span>
+    <span class="version">v1.0</span>
+  </div>
+  <div class="topbar-right">
+    <span class="shortcut">Ctrl + Enter to run</span>
+    <button class="btn btn-clear" onclick="clearOutput()">Clear</button>
+    <button class="btn btn-run" id="run-btn" onclick="runCode()">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 1.5l6 3.5-6 3.5V1.5z"/></svg>
+      Run
+    </button>
+  </div>
+</div>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+  <!-- EDITOR -->
+  <div class="editor-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="dot"></div>
+        editor.lnx
+      </div>
+      <div style="font-size:10px;color:var(--text3);">lunex</div>
+    </div>
+    <div class="examples-bar">
+      <span class="ex-label">Examples</span>
+      <button class="ex-btn active" onclick="loadEx('hello',this)">Hello World</button>
+      <button class="ex-btn" onclick="loadEx('variables',this)">Variables</button>
+      <button class="ex-btn" onclick="loadEx('loop',this)">Loops</button>
+      <button class="ex-btn" onclick="loadEx('functions',this)">Functions</button>
+      <button class="ex-btn" onclick="loadEx('math',this)">Math</button>
+      <button class="ex-btn" onclick="loadEx('conditions',this)">Conditions</button>
+      <button class="ex-btn" onclick="loadEx('fizzbuzz',this)">FizzBuzz</button>
+    </div>
+    <div class="editor-wrap">
+      <div class="line-numbers" id="line-numbers">1</div>
+      <textarea class="editor" id="editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="output-panel">
+    <div class="panel-header">
+      <div class="panel-title">output</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="run-time" style="font-size:10px;color:var(--text3);"></span>
+      </div>
+    </div>
+    <div class="output-body" id="output">
+      <div class="out-empty">// Output will appear here when you run your code</div>
+    </div>
+  </div>
+
+  <!-- REFERENCE -->
+  <div class="ref-panel">
+    <div class="panel-header">
+      <div class="panel-title">quick reference</div>
+    </div>
+    <div class="ref-body">
+      <div class="ref-item"><span class="ref-kw">make x = 5.</span><span class="ref-desc">create variable</span></div>
+      <div class="ref-item"><span class="ref-kw">dsp "text".</span><span class="ref-desc">print output</span></div>
+      <div class="ref-item"><span class="ref-kw">if x = 5: ...</span><span class="ref-desc">conditional</span></div>
+      <div class="ref-item"><span class="ref-kw">if x = 5: ... otherwise: ...</span><span class="ref-desc">if/else</span></div>
+      <div class="ref-item"><span class="ref-kw">loop 5 times: ...</span><span class="ref-desc">repeat n times</span></div>
+      <div class="ref-item"><span class="ref-kw">loop through list: ...</span><span class="ref-desc">iterate list</span></div>
+      <div class="ref-item"><span class="ref-kw">assign fn: ... end.</span><span class="ref-desc">define function</span></div>
+      <div class="ref-item"><span class="ref-kw">fn with x = 1.</span><span class="ref-desc">call with args</span></div>
+      <div class="ref-item"><span class="ref-kw">store n ask "...".</span><span class="ref-desc">user input</span></div>
+      <div class="ref-item"><span class="ref-kw">rev value.</span><span class="ref-desc">return value</span></div>
+      <div class="ref-item"><span class="ref-kw">make list = [1,2,3].</span><span class="ref-desc">create list</span></div>
+      <div class="ref-item"><span class="ref-kw">// comment</span><span class="ref-desc">single line comment</span></div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div class="status-left">
+      <span class="status-item" id="status-msg">Ready</span>
+    </div>
+    <div class="status-right">
+      <span class="status-item" id="status-lines">1 line</span>
+      <span class="status-item" id="status-cursor">Ln 1, Col 1</span>
+      <span class="status-item">UTF-8</span>
+      <span class="status-item" style="color:var(--green);">Lunex 1.0</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── EXAMPLES ──────────────────────────────────────────────────
+const EXAMPLES = {
+  hello: `// Hello World in Lunex
+
+make name = "World".
+dsp "Hello, " + name + "!".
+dsp "Welcome to Lunex.".`,
+
+  variables: `// Variables in Lunex
+// Use make to create any variable
+
+make name = "Roland".
+make age = 18.
+make city = "Lagos".
+make isBuilder = "yes".
+
+dsp "Name: " + name.
+dsp "Age: " + age.
+dsp "City: " + city.
+dsp "Builder: " + isBuilder.`,
+
+  loop: `// Loops in Lunex
+
+// Loop n times — index auto-counts from 1
+dsp "Counting up:".
+loop 5 times: dsp index.
+
+// Loop through a list — item holds current value
+make fruits = ["mango", "banana", "pawpaw", "orange", "guava"].
+dsp " ".
+dsp "Fruits:".
+loop through fruits: dsp index + ". " + item.`,
+
+  functions: `// Functions in Lunex
+
+assign greet:
+  dsp "Hello, " + name + "!".
+  dsp "You are " + age + " years old.".
+end.
+
+assign add:
+  make result = a + b.
+  rev result.
+end.
+
+// Call with arguments
+greet with name = "Roland", age = 18.
+dsp " ".
+greet with name = "Luna", age = 1.
+
+// Use return value
+add with a = 10, b = 25.
+dsp "10 + 25 = " + result.`,
+
+  math: `// Math in Lunex
+
+make a = 100.
+make b = 7.
+
+dsp "Addition:      " + a + " + " + b + " = " + (a + b).
+dsp "Subtraction:   " + a + " - " + b + " = " + (a - b).
+dsp "Multiplication:" + a + " * " + b + " = " + (a * b).
+
+assign divide:
+  make ans = x / y.
+  rev ans.
+end.
+
+divide with x = 100, y = 4.
+dsp "Division:      100 / 4 = " + result.
+
+// Power of 2
+assign square:
+  make ans = n * n.
+  rev ans.
+end.
+
+square with n = 9.
+dsp "9 squared = " + result.`,
+
+  conditions: `// Conditions in Lunex
+
+make score = 85.
+
+if score >= 90: dsp "Grade: A".
+if score >= 80: dsp "Grade: B".
+if score >= 70: dsp "Grade: C".
+if score < 70: dsp "Grade: F".
+
+dsp " ".
+
+// if / otherwise
+make x = 42.
+if x = 42: dsp "That's the answer." otherwise: dsp "Not the answer.".
+
+// Conditions in loops
+make nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].
+dsp "Even numbers:".
+loop through nums:
+  if item != 1: dsp item.`,
+
+  fizzbuzz: `// FizzBuzz in Lunex
+
+assign check:
+  if n = 15: dsp "FizzBuzz".
+  if n = 3: dsp "Fizz".
+  if n = 6: dsp "Fizz".
+  if n = 9: dsp "Fizz".
+  if n = 12: dsp "Fizz".
+  if n = 5: dsp "Buzz".
+  if n = 10: dsp "Buzz".
+end.
+
+make nums = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].
+dsp "FizzBuzz (1-15):".
+loop through nums: dsp item.`
+};
+
+// ── LINE NUMBERS ──────────────────────────────────────────────
+const editor = document.getElementById('editor');
+const lineNums = document.getElementById('line-numbers');
+
+function updateLineNumbers() {
+  const lines = editor.value.split('\n').length;
+  lineNums.textContent = Array.from({length: lines}, (_, i) => i + 1).join('\n');
+  document.getElementById('status-lines').textContent = lines + (lines === 1 ? ' line' : ' lines');
+}
+
+editor.addEventListener('input', updateLineNumbers);
+editor.addEventListener('scroll', () => { lineNums.scrollTop = editor.scrollTop; });
+editor.addEventListener('keyup', updateCursor);
+editor.addEventListener('click', updateCursor);
+
+function updateCursor() {
+  const pos = editor.selectionStart;
+  const lines = editor.value.substring(0, pos).split('\n');
+  const ln = lines.length;
+  const col = lines[lines.length - 1].length + 1;
+  document.getElementById('status-cursor').textContent = `Ln ${ln}, Col ${col}`;
+}
+
+// Tab key support
+editor.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = editor.selectionStart;
+    const e2 = editor.selectionEnd;
+    editor.value = editor.value.substring(0, s) + '  ' + editor.value.substring(e2);
+    editor.selectionStart = editor.selectionEnd = s + 2;
+    updateLineNumbers();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runCode();
+  }
+});
+
+// ── LOAD EXAMPLE ─────────────────────────────────────────────
+function loadEx(name, btn) {
+  editor.value = EXAMPLES[name] || '';
+  updateLineNumbers();
+  document.querySelectorAll('.ex-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  clearOutput(true);
+  editor.focus();
+}
+
+// ── OUTPUT HELPERS ────────────────────────────────────────────
+function outputTo(val, type = 'line') {
+  const el = document.getElementById('output');
+  // Clear placeholder
+  const empty = el.querySelector('.out-empty');
+  if (empty) empty.remove();
+
+  const line = document.createElement('div');
+  if (type === 'error') {
+    line.className = 'out-error';
+    line.textContent = String(val);
+  } else if (type === 'info') {
+    line.className = 'out-info';
+    line.textContent = String(val);
+  } else if (type === 'sep') {
+    line.className = 'out-sep';
+  } else {
+    line.className = 'out-line';
+    line.textContent = String(val);
+  }
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearOutput(silent = false) {
+  const el = document.getElementById('output');
+  el.innerHTML = '<div class="out-empty">// Output will appear here when you run your code</div>';
+  document.getElementById('run-time').textContent = '';
+  if (!silent) setStatus('Cleared', 'default');
+}
+
+function setStatus(msg, type = 'default') {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.className = 'status-item' + (type === 'green' ? ' green' : type === 'red' ? ' red' : type === 'yellow' ? ' yellow' : '');
+}
+
+// ── LUNEX RUNTIME ─────────────────────────────────────────────
+async function runCode() {
+  const code = editor.value.trim();
+  if (!code) return;
+
+  const btn = document.getElementById('run-btn');
+  btn.classList.add('running');
+  btn.textContent = 'Running...';
+
+  const outEl = document.getElementById('output');
+  outEl.innerHTML = '';
+
+  setStatus('Running...', 'yellow');
+  const t0 = performance.now();
+
+  try {
+    await lunexRun(code);
+    const ms = Math.round(performance.now() - t0);
+    document.getElementById('run-time').textContent = `${ms}ms`;
+    setStatus('Done', 'green');
+  } catch (err) {
+    outputTo('Runtime error: ' + err.message, 'error');
+    setStatus('Error', 'red');
+  }
+
+  btn.classList.remove('running');
+  btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 1.5l6 3.5-6 3.5V1.5z"/></svg> Run';
+}
+
+// ── LUNEX INTERPRETER ─────────────────────────────────────────
+async function lunexRun(code) {
+  const lines = code.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('//'));
+  const vars  = {};
+  const funcs = {};
+
+  // Pass 1: collect function definitions
+  let i = 0;
+  while (i < lines.length) {
+    if (lines[i].startsWith('assign ')) {
+      const name = lines[i].slice(7).replace(/:$/, '').trim();
+      const body = []; i++;
+      while (i < lines.length && !lines[i].startsWith('end')) { body.push(lines[i]); i++; }
+      funcs[name] = body;
+    }
+    i++;
+  }
+
+  // Pass 2: execute
+  i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.startsWith('assign ')) {
+      i++;
+      while (i < lines.length && !lines[i].startsWith('end')) i++;
+      i++; continue;
+    }
+    await runLine(line, vars, funcs);
+    i++;
+  }
+}
+
+async function runLine(line, vars, funcs) {
+  line = line.trim();
+  if (!line || line.startsWith('//')) return;
+
+  if (line.startsWith('dsp ')) {
+    const val = evaluate(line.slice(4).replace(/\.$/, '').trim(), vars);
+    outputTo(val);
+  }
+  else if (line.startsWith('make ')) {
+    const raw = line.slice(5).replace(/\.$/, '').trim();
+    const eq = raw.indexOf('=');
+    if (eq === -1) { outputTo(`make: missing = in "${line}"`, 'error'); return; }
+    vars[raw.slice(0, eq).trim()] = evaluate(raw.slice(eq + 1).trim(), vars);
+  }
+  else if (line.startsWith('store ')) {
+    const raw = line.replace(/\.$/, '').slice(6).trim();
+    const ai = raw.indexOf(' ask ');
+    if (ai === -1) { outputTo(`store: missing ask in "${line}"`, 'error'); return; }
+    const vn = raw.slice(0, ai).trim();
+    const q  = raw.slice(ai + 5).trim().replace(/^"|"$/g, '');
+    const ans = window.prompt(q) || '';
+    vars[vn] = isNaN(ans) ? ans : Number(ans);
+  }
+  else if (line.startsWith('if ')) {
+    const ci = line.indexOf(':');
+    if (ci === -1) { outputTo(`if: missing : in "${line}"`, 'error'); return; }
+    const cond = line.slice(3, ci).trim();
+    const rest = line.slice(ci + 1).trim();
+    const oi = rest.toLowerCase().indexOf('otherwise:');
+    let then_ = rest, else_ = null;
+    if (oi !== -1) { then_ = rest.slice(0, oi).trim(); else_ = rest.slice(oi + 10).trim(); }
+    if (evalCond(cond, vars)) await runLine(then_, vars, funcs);
+    else if (else_) await runLine(else_, vars, funcs);
+  }
+  else if (line.startsWith('loop ')) {
+    const ci = line.indexOf(':');
+    if (ci === -1) { outputTo(`loop: missing : in "${line}"`, 'error'); return; }
+    const def  = line.slice(5, ci).trim();
+    const body = line.slice(ci + 1).trim();
+    if (def.endsWith('times')) {
+      const n = Number(evaluate(def.slice(0, def.lastIndexOf('times')).trim(), vars));
+      for (let k = 0; k < n; k++) { vars['index'] = k + 1; await runLine(body, vars, funcs); }
+    } else if (def.startsWith('through ')) {
+      const list = vars[def.slice(8).trim()];
+      if (!Array.isArray(list)) { outputTo(`loop: "${def.slice(8).trim()}" is not a list`, 'error'); return; }
+      for (let k = 0; k < list.length; k++) { vars['item'] = list[k]; vars['index'] = k + 1; await runLine(body, vars, funcs); }
+    }
+  }
+  else if (line.startsWith('rev ')) {
+    vars['__return__'] = evaluate(line.slice(4).replace(/\.$/, '').trim(), vars);
+  }
+  else if (funcs[line.replace(/\.$/, '').trim()]) {
+    await runFunc(line.replace(/\.$/, '').trim(), {}, vars, funcs);
+  }
+  else if (line.includes(' with ') && funcs[line.split(' with ')[0].trim()]) {
+    const p = line.split(' with ');
+    const fn = p[0].trim();
+    const lv = { ...vars };
+    p[1].replace(/\.$/, '').split(',').forEach(a => {
+      const eq = a.indexOf('=');
+      if (eq !== -1) lv[a.slice(0, eq).trim()] = evaluate(a.slice(eq + 1).trim(), vars);
+    });
+    await runFunc(fn, lv, vars, funcs);
+  }
+  else if (line && !line.startsWith('end')) {
+    outputTo(`unknown command: "${line}"`, 'error');
+  }
+}
+
+async function runFunc(name, lv, vars, funcs) {
+  const body = funcs[name];
+  if (!body) { outputTo(`function "${name}" not found`, 'error'); return; }
+  const scope = { ...vars, ...lv, __return__: undefined };
+  for (const l of body) {
+    await runLine(l, scope, funcs);
+    if (scope['__return__'] !== undefined) break;
+  }
+  if (scope['__return__'] !== undefined) vars['result'] = scope['__return__'];
+}
+
+function evalCond(c, vars) {
+  for (const op of ['>=', '<=', '!=', '>', '<', '=']) {
+    const idx = c.indexOf(op);
+    if (idx === -1) continue;
+    const l = evaluate(c.slice(0, idx).trim(), vars);
+    const r = evaluate(c.slice(idx + op.length).trim(), vars);
+    if (op === '>')  return Number(l) > Number(r);
+    if (op === '<')  return Number(l) < Number(r);
+    if (op === '>=') return Number(l) >= Number(r);
+    if (op === '<=') return Number(l) <= Number(r);
+    if (op === '!=') return l != r;
+    if (op === '=')  return l == r;
+  }
+  return false;
+}
+
+function evaluate(expr, vars) {
+  expr = expr.trim();
+
+  // List literal
+  if (expr.startsWith('[') && expr.endsWith(']'))
+    return expr.slice(1, -1).split(',').map(i => evaluate(i.trim(), vars));
+
+  // Parenthesised expression
+  if (expr.startsWith('(') && expr.endsWith(')'))
+    return evaluate(expr.slice(1, -1), vars);
+
+  // String literal
+  if ((expr.startsWith('"') && expr.endsWith('"')) ||
+      (expr.startsWith("'") && expr.endsWith("'")))
+    return expr.slice(1, -1);
+
+  // Number
+  if (!isNaN(expr) && expr !== '') return Number(expr);
+
+  // Variable lookup
+  if (vars.hasOwnProperty(expr)) return vars[expr];
+
+  // Arithmetic — simple left-to-right (split on first found outside strings)
+  for (const op of ['+', '-', '*', '/']) {
+    const idx = findOperator(expr, op);
+    if (idx !== -1) {
+      const l = evaluate(expr.slice(0, idx).trim(), vars);
+      const r = evaluate(expr.slice(idx + 1).trim(), vars);
+      if (op === '+') return (typeof l === 'number' && typeof r === 'number') ? l + r : String(l) + String(r);
+      if (op === '-') return Number(l) - Number(r);
+      if (op === '*') return Number(l) * Number(r);
+      if (op === '/') return Number(l) / Number(r);
+    }
+  }
+
+  return expr;
+}
+
+function findOperator(expr, op) {
+  let inStr = false, strChar = '';
+  let depth = 0;
+  for (let i = expr.length - 1; i >= 0; i--) {
+    const c = expr[i];
+    if ((c === '"' || c === "'") && !inStr) { inStr = true; strChar = c; }
+    else if (c === strChar && inStr) { inStr = false; }
+    else if (!inStr) {
+      if (c === ')' || c === ']') depth++;
+      else if (c === '(' || c === '[') depth--;
+      else if (c === op && depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+loadEx('hello', document.querySelector('.ex-btn'));
+updateLineNumbers();
+setStatus('Ready', 'default');
+</script>
+</body>
+</html>
