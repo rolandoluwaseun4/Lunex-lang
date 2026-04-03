@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lunex — A Real Webpage Written in Lunex</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { background: #060608; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #fff; }
+    #lunex-app { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    @media (max-width: 640px) {
+      #lunex-cards { flex-direction: column !important; }
+      #lunex-feats  { flex-direction: column !important; }
+      #lunex-hero   { padding-top: 100px !important; padding-bottom: 60px !important; }
+      #lunex-heroTitle { font-size: 36px !important; }
+    }
+  </style>
+</head>
+<body>
+<div id="lunex-app"></div>
+<script src="lunex-browser.js"></script>
+<script type="text/lunex">
+
+// ════════════════════════════════════════
+//  LUNEX LANDING PAGE
+//  Written entirely in Lunex v0.10
+// ════════════════════════════════════════
+
+// ── NAVBAR ──────────────────────────────
+row nav justifyContent=“space-between” alignItems=“center” padding=“0 0” height=“64px” borderBottom=“1px solid rgba(255,255,255,0.07)” marginBottom=“0” position=“sticky” top=“0” background=“rgba(6,6,8,0.9)” backdropFilter=“blur(20px)” zIndex=“100”.
+
+create navLogo as span text=“lunex” color=”#a78bfa” fontSize=“20px” fontWeight=“800” letterSpacing=”-0.5px”.
+
+row navLinks gap=“28px”.
+create nl1 as a text=“Docs” color=“rgba(255,255,255,0.5)” fontSize=“13px” fontWeight=“500” textDecoration=“none” cursor=“pointer”.
+create nl2 as a text=“Playground” color=“rgba(255,255,255,0.5)” fontSize=“13px” fontWeight=“500” textDecoration=“none” cursor=“pointer” href=“playground.html”.
+create nl3 as a text=“Examples” color=“rgba(255,255,255,0.5)” fontSize=“13px” fontWeight=“500” textDecoration=“none” cursor=“pointer”.
+place nl1 inside navLinks.
+place nl2 inside navLinks.
+place nl3 inside navLinks.
+
+create navCta as button text=“Get Started” background=”#7c3aed” color=“white” border=“none” borderRadius=“100px” padding=“8px 20px” fontSize=“13px” fontWeight=“600” cursor=“pointer”.
+on navCta click: change navCta to “Opening…”.
+
+place navLogo inside nav.
+place navLinks inside nav.
+place navCta inside nav.
+place nav.
+
+// ── HERO ────────────────────────────────
+col hero alignItems=“center” textAlign=“center” padding=“120px 0 80px”.
+
+create badge as span text=“Now in public beta” color=”#a78bfa” background=“rgba(124,58,237,0.12)” border=“1px solid rgba(124,58,237,0.25)” borderRadius=“100px” padding=“6px 16px” fontSize=“12px” fontWeight=“500” marginBottom=“28px” display=“inline-block”.
+
+create heroTitle as h1 text=“Code in plain English.” color=“white” fontSize=“72px” fontWeight=“800” letterSpacing=”-2px” lineHeight=“1.05” marginBottom=“20px”.
+
+create heroSub as p text=“Lunex is a programming language where you write exactly what you mean. No symbols, no semicolons — just English.” color=“rgba(255,255,255,0.45)” fontSize=“18px” fontWeight=“300” maxWidth=“520px” lineHeight=“1.7” marginBottom=“40px”.
+
+row heroActions gap=“12px” justifyContent=“center”.
+create heroPrimary as a text=“Open Playground” background=”#7c3aed” color=“white” border=“none” borderRadius=“12px” padding=“14px 28px” fontSize=“15px” fontWeight=“600” cursor=“pointer” href=“playground.html” textDecoration=“none” display=“inline-block”.
+create heroSecondary as button text=“Read the Docs” background=“rgba(255,255,255,0.06)” color=“white” border=“1px solid rgba(255,255,255,0.1)” borderRadius=“12px” padding=“14px 28px” fontSize=“15px” cursor=“pointer”.
+place heroPrimary inside heroActions.
+place heroSecondary inside heroActions.
+
+place badge inside hero.
+place heroTitle inside hero.
+place heroSub inside hero.
+place heroActions inside hero.
+place hero.
+
+// ── CODE PREVIEW ────────────────────────
+col codePreview background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” overflow=“hidden” marginBottom=“100px” boxShadow=“0 40px 80px rgba(0,0,0,0.5)”.
+
+row codeBar background=”#17171c” padding=“12px 20px” borderBottom=“1px solid rgba(255,255,255,0.06)”.
+row codeDots gap=“6px”.
+create d1 as span background=”#ff5f57” width=“10px” height=“10px” borderRadius=“50%” display=“inline-block”.
+create d2 as span background=”#febc2e” width=“10px” height=“10px” borderRadius=“50%” display=“inline-block”.
+create d3 as span background=”#28c840” width=“10px” height=“10px” borderRadius=“50%” display=“inline-block”.
+place d1 inside codeDots.
+place d2 inside codeDots.
+place d3 inside codeDots.
+create codeFile as span text=“hello.lnx” color=“rgba(255,255,255,0.25)” fontSize=“11px” fontFamily=“monospace” marginLeft=“12px”.
+place codeDots inside codeBar.
+place codeFile inside codeBar.
+place codeBar inside codePreview.
+
+create codeContent as pre text=”// Your first Lunex program
+
+make name = "Roland".
+make age = 20.
+
+dsp "Hello, " + name + "!".
+
+if age >= 18: dsp "You are an adult.". otherwise: dsp "You are a minor.".
+
+assign greet:
+dsp "Welcome to Lunex, " + name + "!".
+end.
+
+greet.” color=”#e0e0e0” fontSize=“13px” fontFamily=“monospace” lineHeight=“2” padding=“24px 28px”.
+
+place codeContent inside codePreview.
+place codePreview.
+
+// ── FEATURES SECTION ────────────────────
+col featSection marginBottom=“100px”.
+
+create featLabel as span text=“LANGUAGE REFERENCE” color=”#a78bfa” fontSize=“11px” fontWeight=“600” letterSpacing=“2px” marginBottom=“12px” display=“block”.
+create featTitle as h2 text=“Everything you need.” color=“white” fontSize=“42px” fontWeight=“800” letterSpacing=”-1px” marginBottom=“16px”.
+create featSub as p text=“Lunex has 7 commands. That is all you need to build real programs.” color=“rgba(255,255,255,0.45)” fontSize=“16px” fontWeight=“300” marginBottom=“48px”.
+
+place featLabel inside featSection.
+place featTitle inside featSection.
+place featSub inside featSection.
+
+row feats gap=“16px” flexWrap=“wrap”.
+
+col f1 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create f1chip as span text=“dsp” color=”#a78bfa” background=“rgba(124,58,237,0.12)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontWeight=“600” fontFamily=“monospace” marginBottom=“14px” display=“inline-block”.
+create f1t as p text=“Display Output” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create f1d as p text=“Print anything — strings, numbers, variables or expressions.” color=“rgba(255,255,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place f1chip inside f1.
+place f1t inside f1.
+place f1d inside f1.
+
+col f2 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create f2chip as span text=“make” color=”#a78bfa” background=“rgba(124,58,237,0.12)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontWeight=“600” fontFamily=“monospace” marginBottom=“14px” display=“inline-block”.
+create f2t as p text=“Create Variables” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create f2d as p text=“Store text, numbers, or lists in a named variable.” color=“rgba(255,255,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place f2chip inside f2.
+place f2t inside f2.
+place f2d inside f2.
+
+col f3 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create f3chip as span text=“if” color=”#a78bfa” background=“rgba(124,58,237,0.12)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontWeight=“600” fontFamily=“monospace” marginBottom=“14px” display=“inline-block”.
+create f3t as p text=“Conditions” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create f3d as p text=“Run code only when a condition is true. Add otherwise for the else branch.” color=“rgba(255,255,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place f3chip inside f3.
+place f3t inside f3.
+place f3d inside f3.
+
+col f4 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create f4chip as span text=“loop” color=”#a78bfa” background=“rgba(124,58,237,0.12)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontWeight=“600” fontFamily=“monospace” marginBottom=“14px” display=“inline-block”.
+create f4t as p text=“Loops” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create f4d as p text=“Repeat code X times or loop through every item in a list.” color=“rgba(255,255,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place f4chip inside f4.
+place f4t inside f4.
+place f4d inside f4.
+
+col f5 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create f5chip as span text=“assign” color=”#a78bfa” background=“rgba(124,58,237,0.12)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontWeight=“600” fontFamily=“monospace” marginBottom=“14px” display=“inline-block”.
+create f5t as p text=“Functions” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create f5d as p text=“Group lines of code into a reusable function. Call it anywhere.” color=“rgba(255,255,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place f5chip inside f5.
+place f5t inside f5.
+place f5d inside f5.
+
+col f6 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create f6chip as span text=“create” color=”#a78bfa” background=“rgba(124,58,237,0.12)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontWeight=“600” fontFamily=“monospace” marginBottom=“14px” display=“inline-block”.
+create f6t as p text=“Build Web Pages” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create f6d as p text=“Create HTML elements, style them and build real layouts.” color=“rgba(255,255,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place f6chip inside f6.
+place f6t inside f6.
+place f6d inside f6.
+
+place f1 inside feats.
+place f2 inside feats.
+place f3 inside feats.
+place f4 inside feats.
+place f5 inside feats.
+place f6 inside feats.
+place feats inside featSection.
+place featSection.
+
+// ── CTA SECTION ─────────────────────────
+col cta background=“linear-gradient(135deg, rgba(124,58,237,0.15), rgba(167,139,250,0.08))” border=“1px solid rgba(124,58,237,0.2)” borderRadius=“24px” padding=“64px 40px” alignItems=“center” textAlign=“center” marginBottom=“80px”.
+
+create ctaTitle as h2 text=“Start coding in English.” color=“white” fontSize=“40px” fontWeight=“800” letterSpacing=”-1px” marginBottom=“14px”.
+create ctaSub as p text=“No installation. No setup. Just open your browser and write Lunex.” color=“rgba(255,255,255,0.45)” fontSize=“16px” fontWeight=“300” marginBottom=“32px”.
+
+row ctaBtns gap=“12px” justifyContent=“center”.
+create ctaMain as a text=“Open Playground” background=”#7c3aed” color=“white” border=“none” borderRadius=“12px” padding=“14px 32px” fontSize=“15px” fontWeight=“600” cursor=“pointer” href=“playground.html” textDecoration=“none” display=“inline-block”.
+create ctaGit as a text=“View on GitHub” background=“rgba(255,255,255,0.07)” color=“white” border=“1px solid rgba(255,255,255,0.12)” borderRadius=“12px” padding=“14px 32px” fontSize=“15px” cursor=“pointer” href=“https://github.com/rolandoluwaseun4” textDecoration=“none” display=“inline-block”.
+place ctaMain inside ctaBtns.
+place ctaGit inside ctaBtns.
+
+place ctaTitle inside cta.
+place ctaSub inside cta.
+place ctaBtns inside cta.
+place cta.
+
+// ── FOOTER ──────────────────────────────
+row footer justifyContent=“space-between” alignItems=“center” borderTop=“1px solid rgba(255,255,255,0.07)” padding=“32px 0” marginTop=“0”.
+create footLogo as span text=“lunex” color=”#a78bfa” fontSize=“18px” fontWeight=“800”.
+create footCopy as span text=“Built by Roland. A programming language in plain English.” color=“rgba(255,255,255,0.25)” fontSize=“12px”.
+place footLogo inside footer.
+place footCopy inside footer.
+place footer.
+
+</script>
+</body>
+</html>
