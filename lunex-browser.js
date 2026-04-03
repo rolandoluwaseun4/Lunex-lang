@@ -260,7 +260,7 @@
       el.id = 'lunex-' + elName;
       el.style.display = 'flex';
       el.style.flexDirection = 'column';
-      const propRegex = /(\w+)="([^"]*)"/g;
+      const propRegex = /(\w+)=["“]([^"”]*)["”]/g;
       let match;
       while ((match = propRegex.exec(propStr)) !== null) {
         el.style[match[1]] = match[2];
