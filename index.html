@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lunex — Code in Plain English</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html{scroll-behavior:smooth;}
+    body{background:#060608;color:#f0eeff;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+    #lunex-app{max-width:1100px;margin:0 auto;padding:0 24px;}
+    @media(max-width:640px){
+      #lunex-nav{padding:0 20px !important;}
+      #lunex-navLinks a:not(#lunex-navCta){display:none !important;}
+      #lunex-hero{padding-top:100px !important;padding-bottom:60px !important;text-align:center !important;}
+      #lunex-heroTitle{font-size:38px !important;}
+      #lunex-feats{flex-direction:column !important;}
+      #lunex-steps{flex-direction:column !important;}
+      #lunex-ctaBtns{flex-direction:column !important;align-items:center !important;}
+      #lunex-footer{flex-direction:column !important;gap:12px !important;text-align:center !important;}
+    }
+  </style>
+</head>
+<body>
+<div id="lunex-app"></div>
+<script src="lunex-browser.js"></script>
+<script type="text/lunex">
+
+// ══════════════════════════════════════════
+//   LUNEX LANDING PAGE — written in Lunex
+// ══════════════════════════════════════════
+
+// ── NAV ─────────────────────────────────────────────────────────
+row nav justifyContent=“space-between” alignItems=“center” padding=“0” height=“60px” borderBottom=“1px solid rgba(255,255,255,0.07)” position=“sticky” top=“0” background=“rgba(6,6,8,0.92)” backdropFilter=“blur(20px)” zIndex=“100” maxWidth=“1100px” margin=“0 auto” width=“100%”.
+
+create navLogo as a text=“lunex” color=”#a78bfa” fontSize=“20px” fontWeight=“800” letterSpacing=”-0.5px” textDecoration=“none” href=“index.html”.
+
+row navLinks gap=“28px” alignItems=“center”.
+create nl1 as a text=“Docs” color=“rgba(240,238,255,0.5)” fontSize=“13px” fontWeight=“500” textDecoration=“none” href=”#reference”.
+create nl2 as a text=“Playground” color=“rgba(240,238,255,0.5)” fontSize=“13px” fontWeight=“500” textDecoration=“none” href=“playground.html”.
+create nl3 as a text=“How it works” color=“rgba(240,238,255,0.5)” fontSize=“13px” fontWeight=“500” textDecoration=“none” href=”#how”.
+create navCta as a text=“Get Started” background=”#7c3aed” color=“white” borderRadius=“100px” padding=“8px 20px” fontSize=“13px” fontWeight=“600” textDecoration=“none” display=“inline-block” href=“playground.html”.
+place nl1 inside navLinks.
+place nl2 inside navLinks.
+place nl3 inside navLinks.
+place navCta inside navLinks.
+
+place navLogo inside nav.
+place navLinks inside nav.
+place nav.
+
+// ── HERO ─────────────────────────────────────────────────────────
+col hero alignItems=“center” textAlign=“center” padding=“120px 0 80px” position=“relative”.
+
+create heroBadge as span text=“Now in public beta” color=”#a78bfa” background=“rgba(124,58,237,0.12)” border=“1px solid rgba(124,58,237,0.25)” borderRadius=“100px” padding=“6px 16px” fontSize=“12px” fontWeight=“500” marginBottom=“28px” display=“inline-block”.
+
+create heroTitle as h1 color=“white” fontSize=“72px” fontWeight=“800” letterSpacing=”-2px” lineHeight=“1.05” marginBottom=“20px” fontFamily=“Syne, sans-serif”.
+
+create heroTitleSpan as span text=“Code in plain English.” color=”#a78bfa”.
+place heroTitleSpan inside heroTitle.
+
+create heroSub as p text=“Lunex is a programming language where you write exactly what you mean. No symbols, no semicolons — just English.” color=“rgba(240,238,255,0.5)” fontSize=“18px” fontWeight=“300” maxWidth=“520px” lineHeight=“1.7” marginBottom=“40px”.
+
+row heroActions gap=“12px” justifyContent=“center” flexWrap=“wrap”.
+create heroPrimary as a text=“Open Playground” background=”#7c3aed” color=“white” borderRadius=“12px” padding=“14px 28px” fontSize=“15px” fontWeight=“600” textDecoration=“none” display=“inline-block” href=“playground.html”.
+create heroSecondary as a text=“View on GitHub” background=“rgba(15,15,18,1)” color=“white” border=“1px solid rgba(255,255,255,0.1)” borderRadius=“12px” padding=“14px 28px” fontSize=“15px” textDecoration=“none” display=“inline-block” href=“https://github.com/rolandoluwaseun4/Lunex-lang” target=”_blank”.
+place heroPrimary inside heroActions.
+place heroSecondary inside heroActions.
+
+place heroBadge inside hero.
+place heroTitle inside hero.
+place heroSub inside hero.
+place heroActions inside hero.
+place hero.
+
+// ── CODE WINDOW ──────────────────────────────────────────────────
+col codeWrap marginBottom=“80px” maxWidth=“560px” margin=“0 auto 80px”.
+
+col codeWindow background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” overflow=“hidden” boxShadow=“0 40px 80px rgba(0,0,0,0.5)”.
+
+row codeBar background=”#17171c” padding=“12px 20px” borderBottom=“1px solid rgba(255,255,255,0.07)”.
+row codeDots gap=“6px”.
+create d1 as span background=”#ff5f57” width=“10px” height=“10px” borderRadius=“50%” display=“inline-block”.
+create d2 as span background=”#febc2e” width=“10px” height=“10px” borderRadius=“50%” display=“inline-block”.
+create d3 as span background=”#28c840” width=“10px” height=“10px” borderRadius=“50%” display=“inline-block”.
+place d1 inside codeDots.
+place d2 inside codeDots.
+place d3 inside codeDots.
+create codeFile as span text=“hello.lnx” color=“rgba(255,255,255,0.25)” fontSize=“11px” fontFamily=“monospace” marginLeft=“12px”.
+place codeDots inside codeBar.
+place codeFile inside codeBar.
+place codeBar inside codeWindow.
+
+create codeBody as pre fontFamily=“IBM Plex Mono, monospace” fontSize=“13px” lineHeight=“2” padding=“24px 28px” color=”#e0e0e0”.
+place codeBody inside codeWindow.
+place codeWindow inside codeWrap.
+place codeWrap.
+
+// Fill code body with syntax-highlighted lines
+create cl1 as div.
+create cl1a as span text=”// Your first Lunex program” color=“rgba(255,255,255,0.22)” fontStyle=“italic”.
+place cl1a inside cl1.
+place cl1 inside codeBody.
+
+create clsp1 as div text=” “.
+place clsp1 inside codeBody.
+
+create cl2 as div.
+create cl2k as span text=“make “ color=”#c084fc” fontWeight=“500”.
+create cl2r as span text=“name = “.
+create cl2s as span text=’“Roland”’ color=”#4ade80”.
+place cl2k inside cl2. place cl2r inside cl2. place cl2s inside cl2.
+place cl2 inside codeBody.
+
+create cl3 as div.
+create cl3k as span text=“make “ color=”#c084fc” fontWeight=“500”.
+create cl3r as span text=“age = “.
+create cl3n as span text=“20” color=”#fb923c”.
+place cl3k inside cl3. place cl3r inside cl3. place cl3n inside cl3.
+place cl3 inside codeBody.
+
+create clsp2 as div text=” “.
+place clsp2 inside codeBody.
+
+create cl4 as div.
+create cl4k as span text=“dsp “ color=”#c084fc” fontWeight=“500”.
+create cl4s as span text=’“Hello, “ + name + “!”’ color=”#4ade80”.
+place cl4k inside cl4. place cl4s inside cl4.
+place cl4 inside codeBody.
+
+create clsp3 as div text=” “.
+place clsp3 inside codeBody.
+
+create cl5 as div.
+create cl5k as span text=“if “ color=”#c084fc” fontWeight=“500”.
+create cl5r as span text=“age >= “.
+create cl5n as span text=“18” color=”#fb923c”.
+create cl5t as span text=”: “.
+create cl5k2 as span text=“dsp “ color=”#c084fc” fontWeight=“500”.
+create cl5s as span text=’“You are an adult.”’ color=”#4ade80”.
+place cl5k inside cl5. place cl5r inside cl5. place cl5n inside cl5.
+place cl5t inside cl5. place cl5k2 inside cl5. place cl5s inside cl5.
+place cl5 inside codeBody.
+
+create clsp4 as div text=” “.
+place clsp4 inside codeBody.
+
+create cl6 as div.
+create cl6k as span text=“assign “ color=”#c084fc” fontWeight=“500”.
+create cl6r as span text=“greet:”.
+place cl6k inside cl6. place cl6r inside cl6.
+place cl6 inside codeBody.
+
+create cl7 as div.
+create cl7sp as span text=”  “.
+create cl7k as span text=“dsp “ color=”#c084fc” fontWeight=“500”.
+create cl7s as span text=’“Welcome to Lunex!”’ color=”#4ade80”.
+place cl7sp inside cl7. place cl7k inside cl7. place cl7s inside cl7.
+place cl7 inside codeBody.
+
+create cl8 as div.
+create cl8k as span text=“end” color=”#c084fc” fontWeight=“500”.
+create cl8r as span text=”.”.
+place cl8k inside cl8. place cl8r inside cl8.
+place cl8 inside codeBody.
+
+create clsp5 as div text=” “.
+place clsp5 inside codeBody.
+
+create cl9 as div text=“greet.”.
+place cl9 inside codeBody.
+
+// ── FEATURES ─────────────────────────────────────────────────────
+col featSec marginBottom=“100px”.
+
+create featLabel as span text=“LANGUAGE REFERENCE” color=”#a78bfa” fontSize=“11px” fontWeight=“600” letterSpacing=“2px” display=“block” marginBottom=“12px”.
+create featTitle as h2 text=“7 commands. That’s it.” color=“white” fontSize=“42px” fontWeight=“800” letterSpacing=”-1px” marginBottom=“16px” fontFamily=“Syne, sans-serif”.
+create featSub as p text=“Lunex has a minimal core. You can build real programs with just these.” color=“rgba(240,238,255,0.5)” fontSize=“16px” fontWeight=“300” marginBottom=“48px”.
+
+place featLabel inside featSec.
+place featTitle inside featSec.
+place featSub inside featSec.
+
+row feats gap=“16px” flexWrap=“wrap”.
+
+col fc1 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create fc1chip as span text=“dsp” color=”#a78bfa” background=“rgba(124,58,237,0.12)” border=“1px solid rgba(124,58,237,0.3)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontFamily=“monospace” display=“inline-block” marginBottom=“12px”.
+create fc1t as p text=“Display Output” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create fc1d as p text=“Print anything — strings, numbers, variables or expressions.” color=“rgba(240,238,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place fc1chip inside fc1. place fc1t inside fc1. place fc1d inside fc1.
+
+col fc2 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create fc2chip as span text=“make” color=”#a78bfa” background=“rgba(124,58,237,0.12)” border=“1px solid rgba(124,58,237,0.3)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontFamily=“monospace” display=“inline-block” marginBottom=“12px”.
+create fc2t as p text=“Create Variables” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create fc2d as p text=“Store text, numbers, or lists in a named variable.” color=“rgba(240,238,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place fc2chip inside fc2. place fc2t inside fc2. place fc2d inside fc2.
+
+col fc3 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create fc3chip as span text=“if” color=”#a78bfa” background=“rgba(124,58,237,0.12)” border=“1px solid rgba(124,58,237,0.3)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontFamily=“monospace” display=“inline-block” marginBottom=“12px”.
+create fc3t as p text=“Conditions” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create fc3d as p text=“Run code only when a condition is true. Add otherwise for the else branch.” color=“rgba(240,238,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place fc3chip inside fc3. place fc3t inside fc3. place fc3d inside fc3.
+
+col fc4 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create fc4chip as span text=“loop” color=”#a78bfa” background=“rgba(124,58,237,0.12)” border=“1px solid rgba(124,58,237,0.3)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontFamily=“monospace” display=“inline-block” marginBottom=“12px”.
+create fc4t as p text=“Loops” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create fc4d as p text=“Repeat code N times or loop through every item in a list.” color=“rgba(240,238,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place fc4chip inside fc4. place fc4t inside fc4. place fc4d inside fc4.
+
+col fc5 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create fc5chip as span text=“assign” color=”#a78bfa” background=“rgba(124,58,237,0.12)” border=“1px solid rgba(124,58,237,0.3)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontFamily=“monospace” display=“inline-block” marginBottom=“12px”.
+create fc5t as p text=“Functions” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create fc5d as p text=“Group lines into a reusable function. Call it anywhere with arguments.” color=“rgba(240,238,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place fc5chip inside fc5. place fc5t inside fc5. place fc5d inside fc5.
+
+col fc6 background=”#0f0f12” border=“1px solid rgba(255,255,255,0.07)” borderRadius=“16px” padding=“24px” flex=“1” minWidth=“280px”.
+create fc6chip as span text=“create + place” color=”#a78bfa” background=“rgba(124,58,237,0.12)” border=“1px solid rgba(124,58,237,0.3)” borderRadius=“8px” padding=“4px 12px” fontSize=“13px” fontFamily=“monospace” display=“inline-block” marginBottom=“12px”.
+create fc6t as p text=“Build Web Pages” color=“white” fontSize=“15px” fontWeight=“600” marginBottom=“6px”.
+create fc6d as p text=“Create real HTML elements, style them, and build full web layouts.” color=“rgba(240,238,255,0.4)” fontSize=“13px” lineHeight=“1.6”.
+place fc6chip inside fc6. place fc6t inside fc6. place fc6d inside fc6.
+
+place fc1 inside feats. place fc2 inside feats. place fc3 inside feats.
+place fc4 inside feats. place fc5 inside feats. place fc6 inside feats.
+place feats inside featSec.
+place featSec.
+
+// ── CTA ──────────────────────────────────────────────────────────
+col ctaBox background=“linear-gradient(135deg, rgba(124,58,237,0.15), rgba(167,139,250,0.08))” border=“1px solid rgba(124,58,237,0.2)” borderRadius=“24px” padding=“64px 40px” alignItems=“center” textAlign=“center” marginBottom=“80px”.
+
+create ctaTitle as h2 text=“Start coding in English.” color=“white” fontSize=“40px” fontWeight=“800” letterSpacing=”-1px” marginBottom=“14px” fontFamily=“Syne, sans-serif”.
+create ctaSub as p text=“No installation. No setup. Just open your browser and write Lunex.” color=“rgba(240,238,255,0.5)” fontSize=“16px” fontWeight=“300” marginBottom=“32px”.
+
+row ctaBtns gap=“12px” justifyContent=“center” flexWrap=“wrap”.
+create ctaMain as a text=“Open Playground” background=”#7c3aed” color=“white” borderRadius=“12px” padding=“14px 32px” fontSize=“15px” fontWeight=“600” textDecoration=“none” display=“inline-block” href=“playground.html”.
+create ctaGit as a text=“View on GitHub” background=“rgba(15,15,18,1)” color=“white” border=“1px solid rgba(255,255,255,0.12)” borderRadius=“12px” padding=“14px 32px” fontSize=“15px” textDecoration=“none” display=“inline-block” href=“https://github.com/rolandoluwaseun4/Lunex-lang” target=”_blank”.
+place ctaMain inside ctaBtns.
+place ctaGit inside ctaBtns.
+
+place ctaTitle inside ctaBox.
+place ctaSub inside ctaBox.
+place ctaBtns inside ctaBox.
+place ctaBox.
+
+// ── FOOTER ───────────────────────────────────────────────────────
+row footer justifyContent=“space-between” alignItems=“center” borderTop=“1px solid rgba(255,255,255,0.07)” padding=“32px 0”.
+create footLogo as span text=“lunex” color=”#a78bfa” fontSize=“18px” fontWeight=“800” fontFamily=“Syne, sans-serif”.
+create footCopy as span text=“Built by Roland. A programming language in plain English.” color=“rgba(240,238,255,0.25)” fontSize=“12px”.
+place footLogo inside footer.
+place footCopy inside footer.
+place footer.
+
+</script>
+</body>
+</html>
