@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lunex — Code in Plain English</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html{scroll-behavior:smooth;}
+    body{background:#060608;color:#f0eeff;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+    #lunex-app{max-width:1100px;margin:0 auto;padding:0 24px;overflow-x:hidden;}
+    @media(max-width:640px){
+      #lunex-feats{flex-direction:column !important;}
+      #lunex-f1,#lunex-f2,#lunex-f3,#lunex-f4,#lunex-f5,#lunex-f6{min-width:unset !important;width:100% !important;}
+      #lunex-nav{padding:0 16px !important;}
+      #lunex-navLinks>a:not(:last-child){display:none !important;}
+      #lunex-hero{padding:100px 16px 60px !important;}
+      #lunex-heroTitle{font-size:38px !important;letter-spacing:-1px !important;}
+      #lunex-feats{flex-direction:column !important;}
+      #lunex-ctaBtns{flex-direction:column !important;align-items:center !important;}
+      #lunex-footer{flex-direction:column !important;gap:12px !important;text-align:center !important;padding:24px 16px !important;}
+    }
+  </style>
+</head>
+<body>
+
+<div id="lunex-app"></div>
+
+<!-- Lunex runtime — inlined so there are zero external dependencies -->
+
+<script>
+(function(){
+  function output(val){
+    const el=document.getElementById('lunex-output');
+    if(el){const d=document.createElement('div');d.textContent=val;el.appendChild(d);}
+    else console.log('[Lunex]',val);
+  }
+  function getRoot(){return document.getElementById('lunex-app')||document.body;}
+  const elements={};
+
+  async function lunex(code){
+    const lines=code.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('//'));
+    const vars={},funcs={};
+    let i=0;
+    while(i<lines.length){
+      if(lines[i].startsWith('assign ')){
+        const name=lines[i].slice(7).replace(/:$/,'').trim();
+        const body=[];i++;
+        while(i<lines.length&&!lines[i].startsWith('end')){body.push(lines[i]);i++;}
+        funcs[name]=body;
+      }
+      i++;
+    }
+    i=0;
+    while(i<lines.length){
+      if(lines[i].startsWith('assign ')){
+        i++;while(i<lines.length&&!lines[i].startsWith('end'))i++;i++;continue;
+      }
+      try{await runLine(lines[i],vars,funcs);}
+      catch(e){console.warn('[Lunex line error]',lines[i].slice(0,50),e.message);}
+      i++;
+    }
+  }
+
+  async function runLine(line,vars,funcs){
+    line=line.trim();
+    if(!line||line.startsWith('//'))return;
+
+    if(line.startsWith('dsp ')){
+      output(ev(line.slice(4).replace(/\.$/,'').trim(),vars));
+    }
+    else if(line.startsWith('make ')){
+      const raw=line.slice(5).replace(/\.$/,'').trim();
+      const eq=raw.indexOf('=');
+      if(eq===-1)return;
+      vars[raw.slice(0,eq).trim()]=ev(raw.slice(eq+1).trim(),vars);
+    }
+    else if(line.startsWith('store ')){
+      const raw=line.replace(/\.$/,'').slice(6).trim();
+      const ai=raw.indexOf(' ask ');if(ai===-1)return;
+      const vn=raw.slice(0,ai).trim();
+      const q=raw.slice(ai+5).trim().replace(/^"|"$/g,'');
+      const ans=window.prompt(q)||'';
+      vars[vn]=isNaN(ans)||ans===''?ans:Number(ans);
+    }
+    else if(line.startsWith('if ')){
+      const ci=line.indexOf(':');if(ci===-1)return;
+      const cond=line.slice(3,ci).trim();
+      const rest=line.slice(ci+1).trim();
+      const oi=rest.toLowerCase().indexOf('otherwise:');
+      let then_=rest,else_=null;
+      if(oi!==-1){then_=rest.slice(0,oi).trim();else_=rest.slice(oi+10).trim();}
+      if(evalCond(cond,vars))await runLine(then_,vars,funcs);
+      else if(else_)await runLine(else_,vars,funcs);
+    }
+    else if(line.startsWith('loop ')){
+      const ci=line.indexOf(':');if(ci===-1)return;
+      const def=line.slice(5,ci).trim();
+      const body=line.slice(ci+1).trim();
+      if(def.endsWith('times')){
+        const n=Number(ev(def.slice(0,def.lastIndexOf('times')).trim(),vars));
+        for(let k=0;k<n;k++){vars['index']=k+1;await runLine(body,vars,funcs);}
+      }else if(def.startsWith('through ')){
+        const list=vars[def.slice(8).trim()];
+        if(!Array.isArray(list))return;
+        for(let k=0;k<list.length;k++){vars['item']=list[k];vars['index']=k+1;await runLine(body,vars,funcs);}
+      }
+    }
+    else if(line.startsWith('rev ')){
+      vars['__return__']=ev(line.slice(4).replace(/\.$/,'').trim(),vars);
+    }
+    else if(line.startsWith('create ')){
+      const raw=line.slice(7).replace(/\.$/,'').trim();
+      const ai=raw.indexOf(' as ');if(ai===-1)return;
+      const elName=raw.slice(0,ai).trim();
+      const rest=raw.slice(ai+4).trim();
+      const si=rest.search(/\s/);
+      const tag=si===-1?rest:rest.slice(0,si).trim();
+      const propStr=si===-1?'':rest.slice(si).trim();
+      const el=document.createElement(tag);
+      el.id='lunex-'+elName;
+      if(tag==='button'||tag==='input'){el.style.webkitAppearance='none';el.style.appearance='none';}
+      applyProps(el,propStr);
+      elements[elName]=el;vars[elName]=elName;
+    }
+    else if(line.startsWith('row ')){
+      const raw=line.slice(4).replace(/\.$/,'').trim();
+      const si=raw.search(/\s/);
+      const elName=si===-1?raw:raw.slice(0,si);
+      const propStr=si===-1?'':raw.slice(si).trim();
+      const el=document.createElement('div');
+      el.id='lunex-'+elName;
+      el.style.display='flex';el.style.flexDirection='row';el.style.alignItems='center';
+      applyProps(el,propStr);
+      elements[elName]=el;vars[elName]=elName;
+    }
+    else if(line.startsWith('col ')){
+      const raw=line.slice(4).replace(/\.$/,'').trim();
+      const si=raw.search(/\s/);
+      const elName=si===-1?raw:raw.slice(0,si);
+      const propStr=si===-1?'':raw.slice(si).trim();
+      const el=document.createElement('div');
+      el.id='lunex-'+elName;
+      el.style.display='flex';el.style.flexDirection='column';
+      applyProps(el,propStr);
+      elements[elName]=el;vars[elName]=elName;
+    }
+    else if(line.startsWith('place ')){
+      const raw=line.slice(6).replace(/\.$/,'').trim();
+      if(raw.includes(' inside ')){
+        const p=raw.split(' inside ');
+        const el=elements[p[0].trim()];
+        const pn=p[1].trim();
+        const parent=pn==='page'?getRoot():(elements[pn]||document.getElementById('lunex-'+pn));
+        if(el&&parent)parent.appendChild(el);
+      }else{
+        const el=elements[raw.trim()];
+        if(el)getRoot().appendChild(el);
+      }
+    }
+    else if(line.startsWith('show ')){
+      const el=elements[line.slice(5).replace(/\.$/,'').trim()];
+      if(el)el.style.display=el._pd||'block';
+    }
+    else if(line.startsWith('hide ')){
+      const el=elements[line.slice(5).replace(/\.$/,'').trim()];
+      if(el){el._pd=el.style.display;el.style.display='none';}
+    }
+    else if(line.startsWith('on ')){
+      const raw=line.slice(3).replace(/\.$/,'').trim();
+      const ci=raw.indexOf(':');if(ci===-1)return;
+      const parts=raw.slice(0,ci).trim().split(' ');
+      const el=elements[parts[0].trim()];
+      const evt=parts[1]?.trim()||'click';
+      const action=raw.slice(ci+1).trim();
+      if(el){const sv=vars,sf=funcs;el.addEventListener(evt,()=>runLine(action,sv,sf).catch(()=>{}));}
+    }
+    else if(line.startsWith('change ')){
+      const raw=line.slice(7).replace(/\.$/,'').trim();
+      const ti=raw.indexOf(' to ');if(ti===-1)return;
+      const el=elements[raw.slice(0,ti).trim()];
+      if(el)el.textContent=String(ev(raw.slice(ti+4).trim(),vars));
+    }
+    else if(line.startsWith('get ')){
+      const raw=line.slice(4).replace(/\.$/,'').trim();
+      const ai=raw.indexOf(' as ');if(ai===-1)return;
+      const el=elements[raw.slice(0,ai).trim()];
+      if(!el)return;
+      const val=el.value||el.textContent;
+      vars[raw.slice(ai+4).trim()]=isNaN(val)?val:Number(val);
+    }
+    else if(funcs[line.replace(/\.$/,'').trim()]){
+      await runFunc(line.replace(/\.$/,'').trim(),{},vars,funcs);
+    }
+    else if(line.includes(' with ')&&funcs[line.split(' with ')[0].trim()]){
+      const p=line.split(' with ');
+      const fn=p[0].trim();const lv={...vars};
+      p[1].replace(/\.$/,'').trim().split(',').forEach(arg=>{
+        const eq=arg.indexOf('=');
+        if(eq!==-1)lv[arg.slice(0,eq).trim()]=ev(arg.slice(eq+1).trim(),vars);
+      });
+      await runFunc(fn,lv,vars,funcs);
+    }
+  }
+
+  function applyProps(el,propStr){
+    if(!propStr)return;
+    const re=/(\w+)="([^"]*)"/g;let m;
+    while((m=re.exec(propStr))!==null){
+      const key=m[1],val=m[2];
+      if(key==='text')el.textContent=val;
+      else if(key==='html')el.innerHTML=val;
+      else if(key==='placeholder')el.placeholder=val;
+      else if(key==='value')el.value=val;
+      else if(key==='src')el.src=val;
+      else if(key==='href')el.href=val;
+      else if(key==='type')el.type=val;
+      else if(key==='class')el.className=val;
+      else if(key==='id')el.id=val;
+      else if(key==='target')el.target=val;
+      else{
+        el.style[key]=val;
+        if(key==='backdropFilter')el.style.webkitBackdropFilter=val;
+      }
+    }
+  }
+
+  async function runFunc(name,lv,vars,funcs){
+    const body=funcs[name];if(!body)return;
+    const scope={...vars,...lv,__return__:undefined};
+    for(const line of body){
+      await runLine(line,scope,funcs);
+      if(scope['__return__']!==undefined)break;
+    }
+    if(scope['__return__']!==undefined)vars['result']=scope['__return__'];
+  }
+
+  function evalCond(cond,vars){
+    for(const op of['>=','<=','!=','>','<','=']){
+      const i=cond.indexOf(op);if(i===-1)continue;
+      const l=ev(cond.slice(0,i).trim(),vars);
+      const r=ev(cond.slice(i+op.length).trim(),vars);
+      if(op==='>')return l>r;if(op==='<')return l<r;
+      if(op==='>=')return l>=r;if(op==='<=')return l<=r;
+      if(op==='!=')return l!=r;if(op==='=')return l==r;
+    }
+    return false;
+  }
+
+  function splitOp(expr,op){
+    const parts=[];let cur='',inStr=false,sc='';
+    for(let i=0;i<expr.length;i++){
+      const c=expr[i];
+      if(!inStr&&(c==='"'||c==="'")){inStr=true;sc=c;cur+=c;}
+      else if(inStr&&c===sc){inStr=false;cur+=c;}
+      else if(!inStr&&c===op){parts.push(cur.trim());cur='';}
+      else cur+=c;
+    }
+    if(cur.trim())parts.push(cur.trim());
+    return parts;
+  }
+
+  function ev(expr,vars){
+    expr=expr.trim();
+    if(expr.startsWith('[')&&expr.endsWith(']'))
+      return expr.slice(1,-1).split(',').map(i=>ev(i.trim(),vars));
+    if((expr.startsWith('"')&&expr.endsWith('"'))||
+       (expr.startsWith("'")&&expr.endsWith("'"))&&expr.length>=2)
+      return expr.slice(1,-1);
+    if(expr!==''&&!isNaN(expr))return Number(expr);
+    if(Object.prototype.hasOwnProperty.call(vars,expr))return vars[expr];
+    if(expr.includes('+')){
+      const p=splitOp(expr,'+');
+      if(p.length>1){const e=p.map(x=>ev(x,vars));return e.every(x=>typeof x==='number')?e.reduce((a,b)=>a+b,0):e.map(x=>x===undefined?'':x).join('');}
+    }
+    if(expr.includes('*')){
+      const p=splitOp(expr,'*');
+      if(p.length>1){const e=p.map(x=>ev(x,vars));if(e.every(x=>typeof x==='number'))return e.reduce((a,b)=>a*b,1);}
+    }
+    if(expr.includes('-')&&!/^-[\d.]/.test(expr)){
+      const p=splitOp(expr,'-');
+      if(p.length>1){const e=p.map(x=>ev(x,vars));if(e.every(x=>typeof x==='number'))return e.reduce((a,b)=>a-b);}
+    }
+    if(expr.includes('/')){
+      const p=splitOp(expr,'/');
+      if(p.length>1){const e=p.map(x=>ev(x,vars));if(e.every(x=>typeof x==='number'))return e.reduce((a,b)=>a/b);}
+    }
+    return expr;
+  }
+
+  window.lunex=lunex;
+  window._lunexRun=lunex; // playground compat alias
+
+  // Auto-run text/lunex scripts
+  function run(){
+    document.querySelectorAll('script[type="text/lunex"]').forEach(s=>{
+      lunex(s.textContent).catch(e=>console.error('[Lunex]',e));
+    });
+  }
+  if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',run);
+  else run();
+})();
+</script>
+
+<!-- The entire page — written in Lunex -->
+
+<script type="text/lunex">
+
+// ═══════════════════════════════════════════════════════
+//   LUNEX LANDING PAGE
+//   This entire page is built and rendered by Lunex.
+//   The HTML above is just a blank container.
+// ═══════════════════════════════════════════════════════
+
+
+// ── NAV ─────────────────────────────────────────────────
+row nav justifyContent="space-between" alignItems="center" padding="0 24px" height="60px" borderBottom="1px solid rgba(255,255,255,0.07)" position="sticky" top="0" background="rgba(6,6,8,0.92)" backdropFilter="blur(20px)" zIndex="100".
+
+create navLogo as a text="lunex" color="#a78bfa" fontSize="20px" fontWeight="800" letterSpacing="-0.5px" textDecoration="none" href="index.html" fontFamily="Syne, sans-serif".
+
+row navLinks gap="24px" alignItems="center".
+create nl1 as a text="Docs" color="rgba(240,238,255,0.5)" fontSize="13px" fontWeight="500" textDecoration="none" href="#reference".
+create nl2 as a text="Playground" color="rgba(240,238,255,0.5)" fontSize="13px" fontWeight="500" textDecoration="none" href="playground.html".
+create nl3 as a text="How it works" color="rgba(240,238,255,0.5)" fontSize="13px" fontWeight="500" textDecoration="none" href="#how".
+create navCta as a text="Get Started" background="#7c3aed" color="white" borderRadius="100px" padding="8px 20px" fontSize="13px" fontWeight="600" textDecoration="none" display="inline-block" href="playground.html".
+place nl1 inside navLinks.
+place nl2 inside navLinks.
+place nl3 inside navLinks.
+place navCta inside navLinks.
+
+place navLogo inside nav.
+place navLinks inside nav.
+place nav.
+
+
+// ── HERO ────────────────────────────────────────────────
+col hero alignItems="center" textAlign="center" padding="120px 24px 80px".
+
+create heroBadge as span text="Now in public beta" color="#a78bfa" background="rgba(124,58,237,0.12)" border="1px solid rgba(124,58,237,0.25)" borderRadius="100px" padding="6px 16px" fontSize="12px" fontWeight="500" marginBottom="28px" display="inline-block".
+
+create heroTitle as h1 color="white" fontSize="72px" fontWeight="800" letterSpacing="-2px" lineHeight="1.05" marginBottom="20px" fontFamily="Syne, sans-serif".
+create heroTitleNormal as span text="Code in ".
+create heroTitleAccent as span text="plain English." color="#a78bfa".
+place heroTitleNormal inside heroTitle.
+place heroTitleAccent inside heroTitle.
+
+create heroSub as p text="Lunex is a programming language where you write exactly what you mean. No symbols, no semicolons — just English." color="rgba(240,238,255,0.5)" fontSize="18px" fontWeight="300" maxWidth="520px" lineHeight="1.7" marginBottom="40px".
+
+row heroActions gap="12px" justifyContent="center" flexWrap="wrap".
+create heroBtn1 as a text="Open Playground" background="#7c3aed" color="white" borderRadius="12px" padding="14px 28px" fontSize="15px" fontWeight="600" textDecoration="none" display="inline-block" href="playground.html".
+create heroBtn2 as a text="View on GitHub" background="rgba(15,15,18,1)" color="rgba(240,238,255,1)" border="1px solid rgba(255,255,255,0.1)" borderRadius="12px" padding="14px 28px" fontSize="15px" textDecoration="none" display="inline-block" href="https://github.com/rolandoluwaseun4/Lunex-lang" target="_blank".
+place heroBtn1 inside heroActions.
+place heroBtn2 inside heroActions.
+
+place heroBadge inside hero.
+place heroTitle inside hero.
+place heroSub inside hero.
+place heroActions inside hero.
+place hero.
+
+
+// ── CODE WINDOW ─────────────────────────────────────────
+col codeSection alignItems="center" marginBottom="80px".
+
+col codeWindow background="#0f0f12" border="1px solid rgba(255,255,255,0.07)" borderRadius="16px" overflow="hidden" boxShadow="0 40px 80px rgba(0,0,0,0.5)" maxWidth="560px" width="100%".
+
+row codeBar background="#17171c" padding="12px 20px" borderBottom="1px solid rgba(255,255,255,0.07)".
+row codeDots gap="6px".
+create d1 as span background="#ff5f57" width="10px" height="10px" borderRadius="50%" display="inline-block".
+create d2 as span background="#febc2e" width="10px" height="10px" borderRadius="50%" display="inline-block".
+create d3 as span background="#28c840" width="10px" height="10px" borderRadius="50%" display="inline-block".
+place d1 inside codeDots.
+place d2 inside codeDots.
+place d3 inside codeDots.
+create codeFilename as span text="hello.lnx" color="rgba(255,255,255,0.25)" fontSize="11px" fontFamily="IBM Plex Mono, monospace" marginLeft="12px".
+place codeDots inside codeBar.
+place codeFilename inside codeBar.
+place codeBar inside codeWindow.
+
+col codeBody padding="20px 24px" fontFamily="IBM Plex Mono, monospace" fontSize="13px" lineHeight="2".
+
+create cline1 as div.
+create cline1a as span text="// Your first Lunex program" color="rgba(255,255,255,0.22)" fontStyle="italic".
+place cline1a inside cline1.
+place cline1 inside codeBody.
+
+create clinesp1 as div text=" ".
+place clinesp1 inside codeBody.
+
+create cline2 as div.
+create kw2 as span text="make " color="#c084fc" fontWeight="500".
+create tx2 as span text="name = ".
+create s2  as span text='"Roland"' color="#4ade80".
+place kw2 inside cline2.
+place tx2 inside cline2.
+place s2 inside cline2.
+place cline2 inside codeBody.
+
+create cline3 as div.
+create kw3 as span text="make " color="#c084fc" fontWeight="500".
+create tx3 as span text="age = ".
+create n3  as span text="20" color="#fb923c".
+place kw3 inside cline3.
+place tx3 inside cline3.
+place n3 inside cline3.
+place cline3 inside codeBody.
+
+create clinesp2 as div text=" ".
+place clinesp2 inside codeBody.
+
+create cline4 as div.
+create kw4 as span text="dsp " color="#c084fc" fontWeight="500".
+create s4  as span text='"Hello, " + name + "!"' color="#4ade80".
+place kw4 inside cline4.
+place s4 inside cline4.
+place cline4 inside codeBody.
+
+create clinesp3 as div text=" ".
+place clinesp3 inside codeBody.
+
+create cline5 as div.
+create kw5a as span text="if " color="#c084fc" fontWeight="500".
+create tx5  as span text="age >= ".
+create n5   as span text="18" color="#fb923c".
+create tx5b as span text=": ".
+create kw5b as span text="dsp " color="#c084fc" fontWeight="500".
+create s5   as span text='"You are an adult."' color="#4ade80".
+place kw5a inside cline5.
+place tx5 inside cline5.
+place n5 inside cline5.
+place tx5b inside cline5.
+place kw5b inside cline5.
+place s5 inside cline5.
+place cline5 inside codeBody.
+
+create clinesp4 as div text=" ".
+place clinesp4 inside codeBody.
+
+create cline6 as div.
+create kw6 as span text="assign " color="#c084fc" fontWeight="500".
+create tx6 as span text="greet:".
+place kw6 inside cline6.
+place tx6 inside cline6.
+place cline6 inside codeBody.
+
+create cline7 as div.
+create sp7  as span text="  ".
+create kw7  as span text="dsp " color="#c084fc" fontWeight="500".
+create s7   as span text='"Welcome to Lunex!"' color="#4ade80".
+place sp7 inside cline7.
+place kw7 inside cline7.
+place s7 inside cline7.
+place cline7 inside codeBody.
+
+create cline8 as div.
+create kw8 as span text="end" color="#c084fc" fontWeight="500".
+create tx8 as span text=".".
+place kw8 inside cline8.
+place tx8 inside cline8.
+place cline8 inside codeBody.
+
+create clinesp5 as div text=" ".
+place clinesp5 inside codeBody.
+
+create cline9 as div text="greet.".
+place cline9 inside codeBody.
+
+place codeBody inside codeWindow.
+place codeWindow inside codeSection.
+place codeSection.
+
+
+// ── FEATURES ────────────────────────────────────────────
+col featSec marginBottom="80px" width="100%".
+create featLabel as span text="LANGUAGE REFERENCE" color="#a78bfa" fontSize="11px" fontWeight="600" letterSpacing="2px" display="block" marginBottom="12px".
+create featTitle as h2 text="7 commands. That's it." color="white" fontSize="42px" fontWeight="800" letterSpacing="-1px" marginBottom="16px" fontFamily="Syne, sans-serif".
+create featSub as p text="Lunex has a minimal core. You can build real programs with just these." color="rgba(240,238,255,0.5)" fontSize="16px" fontWeight="300" marginBottom="48px".
+place featLabel inside featSec.
+place featTitle inside featSec.
+place featSub inside featSec.
+
+row feats gap="16px" flexWrap="wrap" width="100%".
+
+col f1 background="#0f0f12" border="1px solid rgba(255,255,255,0.07)" borderRadius="16px" padding="24px" flex="1" minWidth="240px".
+create f1c as span text="dsp" color="#a78bfa" background="rgba(124,58,237,0.12)" border="1px solid rgba(124,58,237,0.3)" borderRadius="8px" padding="4px 12px" fontSize="13px" fontFamily="monospace" display="inline-block" marginBottom="12px".
+create f1t as p text="Display Output" color="white" fontSize="15px" fontWeight="600" marginBottom="6px".
+create f1d as p text="Print anything — strings, numbers, variables or expressions." color="rgba(240,238,255,0.4)" fontSize="13px" lineHeight="1.6".
+place f1c inside f1.
+place f1t inside f1.
+place f1d inside f1.
+
+col f2 background="#0f0f12" border="1px solid rgba(255,255,255,0.07)" borderRadius="16px" padding="24px" flex="1" minWidth="240px".
+create f2c as span text="make" color="#a78bfa" background="rgba(124,58,237,0.12)" border="1px solid rgba(124,58,237,0.3)" borderRadius="8px" padding="4px 12px" fontSize="13px" fontFamily="monospace" display="inline-block" marginBottom="12px".
+create f2t as p text="Create Variables" color="white" fontSize="15px" fontWeight="600" marginBottom="6px".
+create f2d as p text="Store text, numbers, or lists in a named variable." color="rgba(240,238,255,0.4)" fontSize="13px" lineHeight="1.6".
+place f2c inside f2.
+place f2t inside f2.
+place f2d inside f2.
+
+col f3 background="#0f0f12" border="1px solid rgba(255,255,255,0.07)" borderRadius="16px" padding="24px" flex="1" minWidth="240px".
+create f3c as span text="if" color="#a78bfa" background="rgba(124,58,237,0.12)" border="1px solid rgba(124,58,237,0.3)" borderRadius="8px" padding="4px 12px" fontSize="13px" fontFamily="monospace" display="inline-block" marginBottom="12px".
+create f3t as p text="Conditions" color="white" fontSize="15px" fontWeight="600" marginBottom="6px".
+create f3d as p text="Run code only when a condition is true. Add otherwise for the else branch." color="rgba(240,238,255,0.4)" fontSize="13px" lineHeight="1.6".
+place f3c inside f3.
+place f3t inside f3.
+place f3d inside f3.
+
+col f4 background="#0f0f12" border="1px solid rgba(255,255,255,0.07)" borderRadius="16px" padding="24px" flex="1" minWidth="240px".
+create f4c as span text="loop" color="#a78bfa" background="rgba(124,58,237,0.12)" border="1px solid rgba(124,58,237,0.3)" borderRadius="8px" padding="4px 12px" fontSize="13px" fontFamily="monospace" display="inline-block" marginBottom="12px".
+create f4t as p text="Loops" color="white" fontSize="15px" fontWeight="600" marginBottom="6px".
+create f4d as p text="Repeat code N times or loop through every item in a list." color="rgba(240,238,255,0.4)" fontSize="13px" lineHeight="1.6".
+place f4c inside f4.
+place f4t inside f4.
+place f4d inside f4.
+
+col f5 background="#0f0f12" border="1px solid rgba(255,255,255,0.07)" borderRadius="16px" padding="24px" flex="1" minWidth="240px".
+create f5c as span text="assign" color="#a78bfa" background="rgba(124,58,237,0.12)" border="1px solid rgba(124,58,237,0.3)" borderRadius="8px" padding="4px 12px" fontSize="13px" fontFamily="monospace" display="inline-block" marginBottom="12px".
+create f5t as p text="Functions" color="white" fontSize="15px" fontWeight="600" marginBottom="6px".
+create f5d as p text="Group lines into a reusable function. Call it anywhere with arguments." color="rgba(240,238,255,0.4)" fontSize="13px" lineHeight="1.6".
+place f5c inside f5.
+place f5t inside f5.
+place f5d inside f5.
+
+col f6 background="#0f0f12" border="1px solid rgba(255,255,255,0.07)" borderRadius="16px" padding="24px" flex="1" minWidth="240px".
+create f6c as span text="create + place" color="#a78bfa" background="rgba(124,58,237,0.12)" border="1px solid rgba(124,58,237,0.3)" borderRadius="8px" padding="4px 12px" fontSize="13px" fontFamily="monospace" display="inline-block" marginBottom="12px".
+create f6t as p text="Build Web Pages" color="white" fontSize="15px" fontWeight="600" marginBottom="6px".
+create f6d as p text="Create real HTML elements, style them, and build full web layouts." color="rgba(240,238,255,0.4)" fontSize="13px" lineHeight="1.6".
+place f6c inside f6.
+place f6t inside f6.
+place f6d inside f6.
+
+place f1 inside feats.
+place f2 inside feats.
+place f3 inside feats.
+place f4 inside feats.
+place f5 inside feats.
+place f6 inside feats.
+place feats inside featSec.
+place featSec.
+
+
+// ── CTA ─────────────────────────────────────────────────
+col ctaBox width="100%" background="linear-gradient(135deg, rgba(124,58,237,0.15), rgba(167,139,250,0.08))" border="1px solid rgba(124,58,237,0.2)" borderRadius="24px" padding="64px 40px" alignItems="center" textAlign="center" marginBottom="80px".
+create ctaTitle as h2 text="Start coding in English." color="white" fontSize="40px" fontWeight="800" letterSpacing="-1px" marginBottom="14px" fontFamily="Syne, sans-serif".
+create ctaSub as p text="No installation. No setup. Just open your browser and write Lunex." color="rgba(240,238,255,0.5)" fontSize="16px" fontWeight="300" marginBottom="32px".
+row ctaBtns gap="12px" justifyContent="center" flexWrap="wrap".
+create ctaBtn1 as a text="Open Playground" background="#7c3aed" color="white" borderRadius="12px" padding="14px 32px" fontSize="15px" fontWeight="600" textDecoration="none" display="inline-block" href="playground.html".
+create ctaBtn2 as a text="View on GitHub" background="rgba(15,15,18,1)" color="rgba(240,238,255,1)" border="1px solid rgba(255,255,255,0.12)" borderRadius="12px" padding="14px 32px" fontSize="15px" textDecoration="none" display="inline-block" href="https://github.com/rolandoluwaseun4/Lunex-lang" target="_blank".
+place ctaBtn1 inside ctaBtns.
+place ctaBtn2 inside ctaBtns.
+place ctaTitle inside ctaBox.
+place ctaSub inside ctaBox.
+place ctaBtns inside ctaBox.
+place ctaBox.
+
+
+// ── FOOTER ──────────────────────────────────────────────
+row footer justifyContent="space-between" alignItems="center" borderTop="1px solid rgba(255,255,255,0.07)" padding="32px 24px".
+create footLogo as span text="lunex" color="#a78bfa" fontSize="18px" fontWeight="800" fontFamily="Syne, sans-serif".
+create footCopy as span text="Built by Roland. A programming language in plain English." color="rgba(240,238,255,0.25)" fontSize="12px".
+place footLogo inside footer.
+place footCopy inside footer.
+place footer.
+
+</script>
+
+</body>
+</html>
